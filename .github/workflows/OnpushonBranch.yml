@@ -1,8 +1,8 @@
-name: Invoke Lambda from GitHub Actions On Push
+name: Invoke Lambda from GitHub Actions On Push On Branches
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main",invokeLambda/PR ]
 
 jobs:
   invoke-lambda:
