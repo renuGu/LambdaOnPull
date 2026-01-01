@@ -1,16 +1,31 @@
-name: Invoke Lambda from GitHub Actions On Push
+name: Send git diff to Lambda
 
 on:
-  push:
-    branches: [ "main" ]
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
-  invoke-lambda:
+  diff-to-lambda:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get git diff
+        run: |
+          git diff origin/main...HEAD > diff.txt
+
+      - name: Upload diff artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-diff
+          path: diff.txt
+      - name: Download diff artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-diff
+          path: .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -24,8 +39,9 @@ jobs:
           aws lambda invoke \
             --function-name arn:aws:lambda:us-east-2:772837503944:function:CallBedrockModel2 \
             --cli-binary-format raw-in-base64-out \
-            --payload '{"source":"github","action":"push"}' \
+            --payload "$(jq -Rs '{diff: .}' diff.txt)" \
             response.json
 
       - name: Show Lambda response
         run: cat response.json
+        

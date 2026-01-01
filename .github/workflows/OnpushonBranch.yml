@@ -1,11 +1,11 @@
-name: Invoke Lambda from GitHub Actions On Push
+name: Name-Invoke Lambda from GitHub Actions On Push On Branches
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main",invokeLambda/PR ]
 
 jobs:
-  invoke-lambda:
+  job-invoke-lambda:
     runs-on: ubuntu-latest
 
     steps:
