@@ -16,6 +16,17 @@ jobs:
         run: |
           git diff origin/main...HEAD > diff.txt
 
+      - name: Upload diff artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-diff
+          path: diff.txt
+      - name: Download diff artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-diff
+          path: .
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
