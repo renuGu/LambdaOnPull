@@ -132,3 +132,50 @@ jobs:
 
       - name: View the Report
         run: cat report2.json
+
+      - name: Format Lambda Output with Python (Resilient Version)
+        run: |
+            python3 - <<EOF
+            import json
+
+            try:
+                # 1. Load the raw file
+                with open('response.json', 'r') as f:
+                    data = json.load(f)
+
+                # 2. Get the 'body' and unescape it
+                # The body itself is a string that contains JSON-per-line
+                raw_body = data.get('body', '')
+                unescaped_body = json.loads(f'"{raw_body}"') if not raw_body.startswith('{') else raw_body
+
+                cleaned_data = []
+                
+                # 3. Split by newline and try to parse each line
+                # This skips the "thinking" tags and empty lines automatically
+                for line in unescaped_body.split('\n'):
+                    line = line.strip()
+                    if line.startswith('{"filename"'):
+                        try:
+                            cleaned_data.append(json.loads(line))
+                        except json.JSONDecodeError:
+                            continue
+
+                # 4. Save to report3.json
+                if cleaned_data:
+                    with open('report3.json', 'w') as f:
+                        json.dump(cleaned_data, f, indent=4)
+                    print(f"Successfully processed {len(cleaned_data)} files.")
+                else:
+                    print("Warning: No valid JSON objects found in body.")
+                    
+            except Exception as e:
+                print(f"Error: {str(e)}")
+            EOF
+
+      - name: Check Output
+        run: |
+            if [ -s report3.json ]; then
+            cat report3.json
+            else
+            echo "report.json is still empty. Check your response.json content."
+            fi
