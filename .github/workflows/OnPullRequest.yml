@@ -57,9 +57,6 @@ jobs:
           path: response1.json
       
       - name: Process Lambda Output to File
-        env:
-            # Safely pass the complex string as an environment variable
-            #RAW_RESPONSE: ${{ steps.invoke_lambda.outputs.response }}
         run: |
             # 1. Extract the 'body' field and unescape it once
             # 2. Use 'grep' to keep only the lines that are actual JSON objects (starts with {)
