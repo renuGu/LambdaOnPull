@@ -45,12 +45,12 @@ jobs:
       - name: Show Lambda response
         run: cat response.json
         
-      - name: Extract model JSON
+      - name: Pretty-print JSON
         run: |
-          jq -r '.Payload.body' response.json > analysis.json
+          jq . response.json
 
       - name: Upload analysis result
         uses: actions/upload-artifact@v4
         with:
           name: ai-code-analysis
-          path: analysis.json
+          path: response.json
