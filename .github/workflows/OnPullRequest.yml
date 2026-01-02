@@ -96,3 +96,39 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "---" >> $GITHUB_STEP_SUMMARY
             done
+       
+      - name: Format Lambda Output with Python
+        run: |
+            python3 - <<EOF
+            import json
+            import re
+
+            # 1. Load the raw file from the Lambda invocation
+            with open('response.json', 'r') as f:
+                data = json.load(f)
+
+            # 2. Extract and unescape the 'body'
+            # This handles the literal \n and \" sequences
+            body_content = data.get('body', '')
+            
+            # 3. Clean the 'thinking' tags and garbage text
+            # We look for anything that looks like a JSON object starting with {"filename"
+            json_objects = re.findall(r'\{"filename".+?\}', body_content, re.DOTALL)
+
+            cleaned_data = []
+            for obj in json_objects:
+                try:
+                    # Parse each string as a real JSON object
+                    cleaned_data.append(json.loads(obj))
+                except Exception as e:
+                    continue
+
+            # 4. Save to a pretty-printed file
+            with open('report2.json', 'w') as f:
+                json.dump(cleaned_data, f, indent=4)
+
+            print("Successfully created report2.json")
+            EOF
+
+      - name: View the Report
+        run: cat report2.json
