@@ -55,8 +55,30 @@ jobs:
         with:
           name: ai-code-analysis
           path: response1.json
+      
+      - name: Process Lambda Output to File
+        env:
+            # Safely pass the complex string as an environment variable
+            RAW_RESPONSE: ${{ steps.invoke_lambda.outputs.response }}
+        run: |
+            # 1. Extract the 'body' field and unescape it once
+            # 2. Use 'grep' to keep only the lines that are actual JSON objects (starts with {)
+            # 3. Use 'jq' to pretty-print the result into a file
+            
+            echo "$RAW_RESPONSE" | jq -r '.body | fromjson' | grep '^{' | jq -s '.' > report.json
 
-      - name: Format Lambda Output
+            # Optional: Verify the file was created
+            echo "Report created successfully: report.json"
+            ls -lh report.json
+     
+      - name: Upload report 
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-Ai-report
+          path: report.json
+
+
+      - name: Format Lambda Output using GithubSummary
         env:
          LAMBDA_OUTPUT: '${{ steps.invoke_lambda.outputs.response }}' # Replace with your actual output variable
         run: |
