@@ -35,6 +35,7 @@ jobs:
           aws-region: us-east-2
 
       - name: Invoke Lambda
+        id: invoke_lambda
         run: |
           aws lambda invoke \
             --function-name arn:aws:lambda:us-east-2:772837503944:function:CallBedrockModel2 \
@@ -58,7 +59,7 @@ jobs:
       - name: Process Lambda Output to File
         env:
             # Safely pass the complex string as an environment variable
-            RAW_RESPONSE: ${{ steps.invoke_lambda.outputs.response }}
+            #RAW_RESPONSE: ${{ steps.invoke_lambda.outputs.response }}
         run: |
             # 1. Extract the 'body' field and unescape it once
             # 2. Use 'grep' to keep only the lines that are actual JSON objects (starts with {)
@@ -70,6 +71,7 @@ jobs:
             # Optional: Verify the file was created
             echo "Report created successfully: report.json"
             ls -lh report.json
+            cat eport.json
      
       - name: Upload report 
         uses: actions/upload-artifact@v4
@@ -80,6 +82,7 @@ jobs:
 
       - name: Format Lambda Output using GithubSummary
         env:
+         #LAMBDA_OUTPUT: response.json
          LAMBDA_OUTPUT: '${{ steps.invoke_lambda.outputs.response }}' # Replace with your actual output variable
         run: |
             echo "### 🚀 Code Analysis Report" >> $GITHUB_STEP_SUMMARY
