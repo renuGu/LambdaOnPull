@@ -65,7 +65,8 @@ jobs:
             # 2. Use 'grep' to keep only the lines that are actual JSON objects (starts with {)
             # 3. Use 'jq' to pretty-print the result into a file
             
-            echo "$RAW_RESPONSE" | jq -r '.body | fromjson' | grep '^{' | jq -s '.' > report.json
+            #echo "$RAW_RESPONSE" | jq -r '.body | fromjson' | grep '^{' | jq -s '.' > report.json
+            cat response.json | jq -r '.body | fromjson' | grep '^{' | jq -s '.' > report.json
 
             # Optional: Verify the file was created
             echo "Report created successfully: report.json"
