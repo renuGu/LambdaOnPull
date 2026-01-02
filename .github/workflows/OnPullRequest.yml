@@ -47,7 +47,7 @@ jobs:
         
       - name: Pretty-print JSON
         run: |
-          jq -R 'fromjson' response.json > response1.json
+          jq -r 'fromjson' response.json > response1.json
 
       - name: Upload analysis result
         uses: actions/upload-artifact@v4
