@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  diff-to-lambda:
+  job-pass-diff-to-lambda:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,3 +45,12 @@ jobs:
       - name: Show Lambda response
         run: cat response.json
         
+      - name: Extract model JSON
+        run: |
+          jq -r '.Payload.body' response.json > analysis.json
+
+      - name: Upload analysis result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-code-analysis
+          path: analysis.json
