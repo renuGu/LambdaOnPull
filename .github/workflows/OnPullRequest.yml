@@ -35,6 +35,7 @@ jobs:
           aws-region: us-east-2
 
       - name: Invoke Lambda
+        id: invoke_lambda
         run: |
           aws lambda invoke \
             --function-name arn:aws:lambda:us-east-2:772837503944:function:CallBedrockModel2 \
@@ -47,10 +48,30 @@ jobs:
         
       - name: Pretty-print JSON
         run: |
-          jq -r 'fromjson' response.json > response1.json
+          jq -R 'fromjson' response.json > response1.json
 
       - name: Upload analysis result
         uses: actions/upload-artifact@v4
         with:
           name: ai-code-analysis
           path: response1.json
+
+      - name: Format Lambda Output
+        env:
+         LAMBDA_OUTPUT: '${{ steps.invoke_lambda.outputs.response }}' # Replace with your actual output variable
+        run: |
+            echo "### 🚀 Code Analysis Report" >> $GITHUB_STEP_SUMMARY
+    
+            # 1. Extract the 'body' string
+            # 2. Use 'fromjson' to unescape it
+            # 3. Use 'split' to remove the text before the JSON (like the </think> tag)
+            # 4. Filter only lines that start with '{' and parse them
+            
+            echo "$LAMBDA_OUTPUT" | jq -r '.body | fromjson' | \
+            grep '^{' | while read -r line; do
+            echo "#### File: $(echo "$line" | jq -r '.filename')" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            echo "$line" | jq '.' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            done
