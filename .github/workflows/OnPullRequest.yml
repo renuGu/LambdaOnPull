@@ -78,8 +78,8 @@ jobs:
 
       - name: Format Lambda Output using GithubSummary
         env:
-         #LAMBDA_OUTPUT: response.json
-         LAMBDA_OUTPUT: '${{ steps.invoke_lambda.outputs.response }}' # Replace with your actual output variable
+         LAMBDA_OUTPUT: response.json
+         #LAMBDA_OUTPUT: '${{ steps.invoke_lambda.outputs.response }}' # Replace with your actual output variable
         run: |
             echo "### 🚀 Code Analysis Report" >> $GITHUB_STEP_SUMMARY
     
