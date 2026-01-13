@@ -1,0 +1,56 @@
+name: Send git diff to Lambda
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  job-pass-diff-to-lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get git diff
+        run: |
+          git diff origin/main...HEAD > diff.txt
+
+      - name: Upload diff artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-diff
+          path: diff.txt
+      - name: Download diff artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-diff
+          path: .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Invoke Lambda
+        run: |
+          aws lambda invoke \
+            --function-name arn:aws:lambda:us-east-2:772837503944:function:CallBedrockModel2 \
+            --cli-binary-format raw-in-base64-out \
+            --payload "$(jq -Rs '{diff: .}' diff.txt)" \
+            response.json
+
+      - name: Show Lambda response
+        run: cat response.json
+        
+      - name: Pretty-print JSON
+        run: |
+          cat response.json | jq -r '.body | fromjson' > response1.json
+
+      - name: Upload analysis result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-code-analysis
+          path: response1.json
