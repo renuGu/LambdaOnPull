@@ -7,6 +7,7 @@ def slow_concat(lines):
     return s
 
 def fast_concat(lines):
+    print('')
     return "".join(lines)
 
 def slow_nested(items):
